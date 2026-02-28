@@ -1,103 +1,90 @@
-import { type Task, useTaskStore } from '../store/taskStore';
-import { useAuthStore } from '../store/authStore';
-import { CheckCircle2, Circle, Clock, Edit2, Trash2 } from 'lucide-react';
-import { formatDistanceToNow, parseISO } from 'date-fns';
-import { PomodoroTimer } from './PomodoroTimer';
-import { useState } from 'react';
+import { CheckCircle2, Circle, Clock, Trash2, Play } from 'lucide-react';
+import { type Task } from '../store/taskStore';
+import { deleteTask, updateTask } from '../services/api';
+import { Button } from './ui/Button';
+import { useAuthStore } from '../store/authStore'; // Importamos el store de puntos
 
-const categoryColors: Record<string, string> = {
-    Work: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300',
-    Personal: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
-    Study: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300',
-    Health: 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300',
-    Other: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-};
+interface TaskItemProps {
+    task: Task;
+    onEdit: () => void;
+    onRefresh: () => Promise<void>;
+}
 
-export function TaskItem({ task, onEdit }: { task: Task; onEdit: () => void }) {
-    const { toggleTaskCompletion, deleteTask, addPomodoroSession } = useTaskStore();
-    const { addPoints } = useAuthStore();
-    const [showTimer, setShowTimer] = useState(false);
+export function TaskItem({ task, onEdit, onRefresh }: TaskItemProps) {
+    const addPoints = useAuthStore((state) => state.addPoints);
 
-    const handleToggle = () => {
-        toggleTaskCompletion(task.id);
-        if (!task.completed) {
-            // Award points for completing a task
-            addPoints(10);
+    const handleToggle = async () => {
+        try {
+            const newStatus = !task.completed;
+            await updateTask(task.id, { completed: newStatus });
+
+            // Si la tarea se marcó como completada, premiamos al usuario
+            if (newStatus) {
+                addPoints(10);
+            }
+
+            await onRefresh();
+        } catch (error) {
+            console.error("Error al actualizar la tarea:", error);
         }
     };
 
-    const handlePomodoroComplete = () => {
-        addPomodoroSession(task.id);
-        // Award more points for completing a focus session
-        addPoints(25);
+    const handleDelete = async () => {
+        if (confirm('¿Eliminar esta tarea definitivamente?')) {
+            try {
+                await deleteTask(task.id);
+                await onRefresh();
+            } catch (error) {
+                console.error("Error al eliminar la tarea:", error);
+            }
+        }
     };
 
     return (
-        <div className={`glass p-5 rounded-xl transition-all duration-300 ${task.completed ? 'opacity-75 bg-gray-50/50 dark:bg-gray-900/50' : 'hover:shadow-lg hover:-translate-y-1'}`}>
-            <div className="flex items-start gap-4">
+        <div className="glass p-4 group hover:border-indigo-500/50 transition-all">
+            <div className="flex items-start justify-between gap-3">
                 <button
                     onClick={handleToggle}
-                    className="mt-1 flex-shrink-0 focus:outline-none"
+                    className="mt-1 transition-transform active:scale-90"
                 >
-                    {task.completed ? (
-                        <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-                    ) : (
-                        <Circle className="w-6 h-6 text-gray-400 hover:text-indigo-500 transition-colors" />
-                    )}
+                    {task.completed ?
+                        <CheckCircle2 className="w-5 h-5 text-emerald-500" /> :
+                        <Circle className="w-5 h-5 text-gray-400 hover:text-indigo-500" />
+                    }
                 </button>
 
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                        <h3 className={`font-semibold text-lg truncate ${task.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-white'}`}>
-                            {task.title}
-                        </h3>
-                        <div className={`px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${categoryColors[task.category]}`}>
+                    <h3 className={`font-semibold truncate transition-colors ${task.completed ? 'line-through text-gray-500' : 'text-gray-900 dark:text-gray-100'
+                        }`}>
+                        {task.title}
+                    </h3>
+
+                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                        <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                             {task.category}
-                        </div>
-                    </div>
-
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
-                        {task.description}
-                    </p>
-
-                    <div className="flex items-center gap-4 mt-4 text-xs font-medium text-gray-400">
-                        <span className="flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5" />
-                            {task.pomodoroSessions} Sessions
                         </span>
-                        <span>Created {formatDistanceToNow(parseISO(task.createdAt))} ago</span>
-                    </div>
-
-                    {/* Pomodoro Timer Toggle */}
-                    {!task.completed && (
-                        <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-                            {showTimer ? (
-                                <PomodoroTimer
-                                    onComplete={handlePomodoroComplete}
-                                    onCancel={() => setShowTimer(false)}
-                                />
-                            ) : (
-                                <button
-                                    onClick={() => setShowTimer(true)}
-                                    className="text-sm font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 flex items-center gap-2"
-                                >
-                                    <Clock className="w-4 h-4" /> Start Focus Session
-                                </button>
-                            )}
+                        <div className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {/* Corregido: pomodoro_sessions para coincidir con la DB */}
+                            {task.pomodoro_sessions || 0} sessions
                         </div>
-                    )}
+                    </div>
                 </div>
 
-                <div className="flex flex-col gap-2 shrink-0">
-                    <button
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={onEdit}
-                        className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 rounded-lg transition-colors"
+                        className="h-8 w-8 p-0"
+                        title="Focus with Pomodoro"
                     >
-                        <Edit2 className="w-4 h-4" />
-                    </button>
+                        <Play className="w-4 h-4 text-indigo-400" />
+                    </Button>
                     <button
-                        onClick={() => deleteTask(task.id)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/50 rounded-lg transition-colors"
+                        onClick={handleDelete}
+                        className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                        title="Delete Task"
                     >
                         <Trash2 className="w-4 h-4" />
                     </button>

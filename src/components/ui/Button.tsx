@@ -2,6 +2,7 @@ import { type ButtonHTMLAttributes, forwardRef } from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+// Helper para combinar clases de Tailwind de forma inteligente
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
@@ -17,15 +18,25 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             <button
                 ref={ref}
                 className={cn(
-                    'inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none',
+                    // Clases base con transiciones suaves
+                    'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none',
                     {
-                        'bg-indigo-600 text-white hover:bg-indigo-700': variant === 'primary',
-                        'bg-white/50 text-gray-900 border border-white/20 hover:bg-white/60 dark:bg-gray-800/50 dark:text-gray-100 dark:border-gray-700': variant === 'secondary',
-                        'bg-red-500 text-white hover:bg-red-600': variant === 'danger',
-                        'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300': variant === 'ghost',
-                        'h-9 px-3 text-sm': size === 'sm',
-                        'h-10 px-4 py-2': size === 'md',
-                        'h-11 px-8 text-lg': size === 'lg',
+                        // Estilo sólido y vibrante
+                        'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-500/20': variant === 'primary',
+
+                        // Estilo Glassmorphism para el botón secundario
+                        'bg-white/40 dark:bg-white/5 text-gray-900 dark:text-gray-100 border border-white/20 dark:border-white/10 backdrop-blur-md hover:bg-white/60 dark:hover:bg-white/10': variant === 'secondary',
+
+                        // Estilo Danger (Red)
+                        'bg-red-500 text-white hover:bg-red-600 shadow-sm': variant === 'danger',
+
+                        // Estilo Ghost (Sin fondo)
+                        'bg-transparent hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400': variant === 'ghost',
+
+                        // Tamaños
+                        'h-8 px-3 text-xs': size === 'sm',
+                        'h-10 px-4 py-2 text-sm': size === 'md',
+                        'h-12 px-8 text-base': size === 'lg',
                     },
                     className
                 )}
@@ -34,6 +45,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         );
     }
 );
+
 Button.displayName = 'Button';
 
 export { Button };

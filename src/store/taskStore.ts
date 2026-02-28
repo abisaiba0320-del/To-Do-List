@@ -8,42 +8,35 @@ export type Task = {
     description: string;
     category: Category;
     completed: boolean;
-    createdAt: string;
-    pomodoroSessions: number; // number of 25m sessions completed
+    created_at: string;        // Cambiado de createdAt a created_at
+    completed_at?: string;     // ¡IMPORTANTE! Agregado para el Dashboard
+    pomodoro_sessions: number; // Cambiado de pomodoroSessions a pomodoro_sessions
+    user_id?: string;          // Agregado para el filtro de seguridad
 };
 
 type TaskState = {
     tasks: Task[];
-    addTask: (task: Omit<Task, 'id' | 'createdAt' | 'pomodoroSessions' | 'completed'>) => void;
+    setTasks: (tasks: Task[]) => void; // Agregamos esto para llenar el store desde la DB
+    addTask: (task: Omit<Task, 'id' | 'created_at' | 'pomodoro_sessions' | 'completed'>) => void;
     updateTask: (id: string, updates: Partial<Task>) => void;
     deleteTask: (id: string) => void;
     toggleTaskCompletion: (id: string) => void;
     addPomodoroSession: (id: string) => void;
-    // Supabase Async handlers
-    // fetchTasks: () => Promise<void>;
-    // createTaskInDb: (task: Omit<Task, ...>) => Promise<void>;
-    // updateTaskInDb: (id: string, updates: Partial<Task>) => Promise<void>;
-    // deleteTaskInDb: (id: string) => Promise<void>;
 };
 
-// Dummy initial data
-const initialTasks: Task[] = [
-    { id: '1', title: 'Complete React project setup', description: 'Initialize Vite, install Tailwind and Zustand', category: 'Work', completed: true, createdAt: new Date().toISOString(), pomodoroSessions: 2 },
-    { id: '2', title: 'Plan database schema', description: 'Draft the Supabase tables for Users and Tasks', category: 'Work', completed: false, createdAt: new Date().toISOString(), pomodoroSessions: 0 },
-    { id: '3', title: 'Workout', description: '30 mins of cardio', category: 'Health', completed: false, createdAt: new Date().toISOString(), pomodoroSessions: 0 },
-];
-
 export const useTaskStore = create<TaskState>((set) => ({
-    tasks: initialTasks,
+    tasks: [], // Empezamos vacío para cargar desde Supabase
+
+    setTasks: (tasks) => set({ tasks }),
 
     addTask: (taskData) => set((state) => ({
         tasks: [
             {
                 ...taskData,
                 id: Date.now().toString(),
-                createdAt: new Date().toISOString(),
+                created_at: new Date().toISOString(),
                 completed: false,
-                pomodoroSessions: 0,
+                pomodoro_sessions: 0,
             },
             ...state.tasks
         ]
@@ -58,32 +51,22 @@ export const useTaskStore = create<TaskState>((set) => ({
     })),
 
     toggleTaskCompletion: (id) => set((state) => ({
-        tasks: state.tasks.map((task) => task.id === id ? { ...task, completed: !task.completed } : task)
+        tasks: state.tasks.map((task) => {
+            if (task.id === id) {
+                const isNowCompleted = !task.completed;
+                return {
+                    ...task,
+                    completed: isNowCompleted,
+                    completed_at: isNowCompleted ? new Date().toISOString() : undefined
+                };
+            }
+            return task;
+        })
     })),
 
     addPomodoroSession: (id) => set((state) => ({
-        tasks: state.tasks.map((task) => task.id === id ? { ...task, pomodoroSessions: task.pomodoroSessions + 1 } : task)
+        tasks: state.tasks.map((task) =>
+            task.id === id ? { ...task, pomodoro_sessions: (task.pomodoro_sessions || 0) + 1 } : task
+        )
     })),
-
-    /*
-    // --- Supabase Async Implementation Example ---
-    fetchTasks: async () => {
-      const { data, error } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
-      if (!error && data) set({ tasks: data });
-    },
-    createTaskInDb: async (taskData) => {
-      const { data, error } = await supabase.from('tasks').insert([taskData]).select();
-      if (!error && data) set((state) => ({ tasks: [data[0], ...state.tasks] }));
-    },
-    updateTaskInDb: async (id, updates) => {
-      const { error } = await supabase.from('tasks').update(updates).eq('id', id);
-      if (!error) set((state) => ({
-        tasks: state.tasks.map(t => t.id === id ? { ...t, ...updates } : t)
-      }));
-    },
-    deleteTaskInDb: async (id) => {
-      const { error } = await supabase.from('tasks').delete().eq('id', id);
-      if (!error) set((state) => ({ tasks: state.tasks.filter(t => t.id !== id) }));
-    }
-    */
 }));

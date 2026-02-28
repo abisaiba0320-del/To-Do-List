@@ -1,21 +1,32 @@
 import { useState } from 'react';
-import { useAuthStore } from '../store/authStore';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { CheckSquare } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { signUp } from '../services/api'; // Importamos la función real de registro
 
 export function Register() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const login = useAuthStore(state => state.login);
+    const [loading, setLoading] = useState(false); // Estado para feedback visual
+    const navigate = useNavigate();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!email || !password) return;
 
-        // In a real app we'd await supabase.auth.signUp and then login
-        login(email);
+        setLoading(true);
+        try {
+            // Llamada real a Supabase a través de tu servicio de API
+            await signUp(email, password);
+
+            alert('¡Registro exitoso! Por favor, revisa tu correo para confirmar tu cuenta antes de iniciar sesión.');
+            navigate('/login'); // Redirigimos al usuario para que entre con sus nuevas credenciales
+        } catch (error: any) {
+            alert('Error en el registro: ' + error.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -49,8 +60,13 @@ export function Register() {
                         required
                     />
 
-                    <Button type="submit" className="w-full mt-6" size="lg">
-                        Create Account
+                    <Button
+                        type="submit"
+                        className="w-full mt-6"
+                        size="lg"
+                        disabled={loading} // Deshabilitamos mientras procesa
+                    >
+                        {loading ? 'Creating Account...' : 'Create Account'}
                     </Button>
                 </form>
 

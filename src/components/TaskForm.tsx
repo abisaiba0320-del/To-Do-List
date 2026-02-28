@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { useTaskStore, type Task, type Category } from '../store/taskStore';
+import { type Task, type Category } from '../store/taskStore';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
+import { createTask, updateTask } from '../services/api'; // Importamos las funciones reales
 
 interface TaskFormProps {
     task?: Task;
@@ -12,22 +13,31 @@ interface TaskFormProps {
 const categories: Category[] = ['Work', 'Personal', 'Study', 'Health', 'Other'];
 
 export function TaskForm({ task, onClose }: TaskFormProps) {
-    const { addTask, updateTask } = useTaskStore();
-
     const [title, setTitle] = useState(task?.title || '');
     const [description, setDescription] = useState(task?.description || '');
     const [category, setCategory] = useState<Category>(task?.category || 'Work');
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!title.trim()) return;
 
-        if (task) {
-            updateTask(task.id, { title, description, category });
-        } else {
-            addTask({ title, description, category });
+        setLoading(true);
+        try {
+            if (task) {
+                // Actualizar en Supabase
+                await updateTask(task.id, { title, description, category });
+            } else {
+                // Crear en Supabase
+                await createTask({ title, description, category, completed: false });
+            }
+            onClose(); // Se cierra y el useEffect de Tasks.tsx recargará la lista
+        } catch (error) {
+            alert("Error al guardar la tarea");
+            console.error(error);
+        } finally {
+            setLoading(false);
         }
-        onClose();
     };
 
     return (
@@ -82,10 +92,11 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
                     </div>
 
                     <div className="flex gap-3 justify-end mt-8">
-                        <Button type="button" variant="secondary" onClick={onClose}>
+                        <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>
                             Cancel
                         </Button>
-                        <Button type="submit">
+                        <Button type="submit" disabled={loading} className="gap-2">
+                            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                             {task ? 'Save Changes' : 'Create Task'}
                         </Button>
                     </div>

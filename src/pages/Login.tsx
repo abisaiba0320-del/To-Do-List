@@ -1,21 +1,38 @@
 import { useState } from 'react';
-import { useAuthStore } from '../store/authStore';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { CheckSquare } from 'lucide-react';
+import { signIn, signUp } from '../services/api'; // Importamos funciones reales
+import { useNavigate } from 'react-router-dom';
 
 export function Login() {
     const [isRegister, setIsRegister] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const login = useAuthStore(state => state.login);
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!email || !password) return;
 
-        // In a real app we'd await supabase.auth.signInWithPassword here
-        login(email);
+        setLoading(true);
+        try {
+            if (isRegister) {
+                // Lógica de Registro Real
+                await signUp(email, password);
+                alert('¡Registro exitoso! Ya puedes iniciar sesión.');
+                setIsRegister(false);
+            } else {
+                // Lógica de Login Real
+                await signIn(email, password);
+                navigate('/'); // Nos vamos al Dashboard al entrar
+            }
+        } catch (error: any) {
+            alert('Error: ' + error.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -49,8 +66,13 @@ export function Login() {
                         required
                     />
 
-                    <Button type="submit" className="w-full mt-6" size="lg">
-                        {isRegister ? 'Create Account' : 'Sign In'}
+                    <Button
+                        type="submit"
+                        className="w-full mt-6"
+                        size="lg"
+                        disabled={loading}
+                    >
+                        {loading ? 'Processing...' : (isRegister ? 'Create Account' : 'Sign In')}
                     </Button>
                 </form>
 

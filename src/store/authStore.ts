@@ -1,65 +1,37 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-export type User = {
-    id: string;
-    email: string;
-    points: number;
-    level: number;
+export type UserProfile = {
+  points: number;
+  level: number;
 };
 
 type AuthState = {
-    user: User | null;
-    isAuthenticated: boolean;
-    login: (email: string) => void;
-    logout: () => void;
-    addPoints: (points: number) => void;
-    // Supabase Async handlers (ready for real implementation)
-    // supabaseLogin: (email: string, password: string) => Promise<void>;
-    // supabaseRegister: (email: string, password: string) => Promise<void>;
-    // supabaseLogout: () => Promise<void>;
+  profile: UserProfile;
+  addPoints: (points: number) => void;
+  resetProfile: () => void;
 };
 
-export const useAuthStore = create<AuthState>((set) => ({
-    user: { id: '1', email: 'demo@user.com', points: 150, level: 2 }, // Initial mock user
-    isAuthenticated: true,
-    login: (email) => set({ user: { id: Date.now().toString(), email, points: 0, level: 1 }, isAuthenticated: true }),
-    logout: () => set({ user: null, isAuthenticated: false }),
-    addPoints: (points) => set((state) => {
-        if (!state.user) return state;
-        const newPoints = state.user.points + points;
-        const newLevel = Math.floor(newPoints / 100) + 1;
-        return {
-            user: { ...state.user, points: newPoints, level: newLevel }
-        };
-    }),
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      profile: { points: 0, level: 1 },
 
-    /*
-    // --- Supabase Async Implementation Example ---
-    supabaseLogin: async (email, password) => {
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        // Fetch user profile stats/points
-        set({ user: { id: data.user.id, email: data.user.email!, points: 0, level: 1 }, isAuthenticated: true });
-      } catch (err) {
-        console.error("Login failed:", err);
-        throw err;
-      }
-    },
-    supabaseRegister: async (email, password) => {
-      try {
-        const { data, error } = await supabase.auth.signUp({ email, password });
-        if (error) throw error;
-        // Insert new profile record in DB
-        set({ user: { id: data.user!.id, email: data.user!.email!, points: 0, level: 1 }, isAuthenticated: true });
-      } catch (err) {
-        console.error("Registration failed:", err);
-        throw err;
-      }
-    },
-    supabaseLogout: async () => {
-      await supabase.auth.signOut();
-      set({ user: null, isAuthenticated: false });
+      addPoints: (points) => set((state) => {
+        const newPoints = state.profile.points + points;
+        // Lógica: Cada 100 puntos subes de nivel
+        const newLevel = Math.floor(newPoints / 100) + 1;
+
+        // Opcional: Podrías disparar una notificación de "Level Up" aquí
+        return {
+          profile: { points: newPoints, level: newLevel }
+        };
+      }),
+
+      resetProfile: () => set({ profile: { points: 0, level: 1 } }),
+    }),
+    {
+      name: 'taskflow-auth-storage', // Nombre un poco más específico para el localStorage
     }
-    */
-}));
+  )
+);
