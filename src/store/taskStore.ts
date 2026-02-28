@@ -8,10 +8,10 @@ export type Task = {
     description: string;
     category: Category;
     completed: boolean;
-    created_at: string;        // Cambiado de createdAt a created_at
-    completed_at?: string;     // ¡IMPORTANTE! Agregado para el Dashboard
-    pomodoro_sessions: number; // Cambiado de pomodoroSessions a pomodoro_sessions
-    user_id?: string;          // Agregado para el filtro de seguridad
+    created_at: string;        // Con guion bajo
+    completed_at?: string;     // <-- Esta línea es vital para el Dashboard
+    pomodoro_sessions: number; // Con guion bajo
+    user_id?: string;          // Para que el código sepa de quién es la tarea
 };
 
 type TaskState = {
