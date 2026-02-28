@@ -13,6 +13,7 @@ export type Task = {
     completed_at?: string;
     pomodoro_sessions: number;
     user_id?: string;
+    xp_awarded?: boolean;
 };
 
 type TaskState = {
@@ -55,24 +56,19 @@ export const useTaskStore = create<TaskState>((set) => ({
         tasks: state.tasks.map((task) => {
             if (task.id === id) {
                 const isNowCompleted = !task.completed;
-
-                // --- LÓGICA ANTI-TRAMPA SINCRONIZADA CON AUTHSTORE ---
                 const auth = useAuthStore.getState();
 
-                if (isNowCompleted) {
-                    // Sumamos 10 puntos al completar
+                // LÓGICA ANTI-TRAMPA DEFINITIVA
+                // Solo damos puntos si: se está completando AHORA Y nunca ha dado puntos antes
+                if (isNowCompleted && !task.xp_awarded) {
                     auth.addPoints(10);
-                } else {
-                    // Restamos 10 puntos al desmarcar si tiene puntos suficientes
-                    if (auth.profile.points >= 10) {
-                        auth.addPoints(-10);
-                    }
                 }
-                // ----------------------------------------------------
 
                 return {
                     ...task,
                     completed: isNowCompleted,
+                    // Marcamos que ya dio puntos para siempre, aunque la desmarque después
+                    xp_awarded: task.xp_awarded || isNowCompleted,
                     completed_at: isNowCompleted ? new Date().toISOString() : undefined
                 };
             }
