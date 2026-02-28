@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useAuthStore } from './authStore';
 
 export type Category = 'Work' | 'Personal' | 'Study' | 'Health' | 'Other';
 
@@ -8,16 +9,16 @@ export type Task = {
     description: string;
     category: Category;
     completed: boolean;
-    created_at: string;        // Con guion bajo
-    completed_at?: string;     // <-- Esta línea es vital para el Dashboard
-    pomodoro_sessions: number; // Con guion bajo
-    user_id?: string;          // Para que el código sepa de quién es la tarea
+    created_at: string;
+    completed_at?: string;
+    pomodoro_sessions: number;
+    user_id?: string;
 };
 
 type TaskState = {
     tasks: Task[];
-    setTasks: (tasks: Task[]) => void; // Agregamos esto para llenar el store desde la DB
-    addTask: (task: Omit<Task, 'id' | 'created_at' | 'pomodoro_sessions' | 'completed'>) => void;
+    setTasks: (tasks: Task[]) => void;
+    addTask: (taskData: Omit<Task, 'id' | 'created_at' | 'pomodoro_sessions' | 'completed'>) => void;
     updateTask: (id: string, updates: Partial<Task>) => void;
     deleteTask: (id: string) => void;
     toggleTaskCompletion: (id: string) => void;
@@ -25,7 +26,7 @@ type TaskState = {
 };
 
 export const useTaskStore = create<TaskState>((set) => ({
-    tasks: [], // Empezamos vacío para cargar desde Supabase
+    tasks: [],
 
     setTasks: (tasks) => set({ tasks }),
 
@@ -54,6 +55,21 @@ export const useTaskStore = create<TaskState>((set) => ({
         tasks: state.tasks.map((task) => {
             if (task.id === id) {
                 const isNowCompleted = !task.completed;
+
+                // --- LÓGICA ANTI-TRAMPA SINCRONIZADA CON AUTHSTORE ---
+                const auth = useAuthStore.getState();
+
+                if (isNowCompleted) {
+                    // Sumamos 10 puntos al completar
+                    auth.addPoints(10);
+                } else {
+                    // Restamos 10 puntos al desmarcar si tiene puntos suficientes
+                    if (auth.profile.points >= 10) {
+                        auth.addPoints(-10);
+                    }
+                }
+                // ----------------------------------------------------
+
                 return {
                     ...task,
                     completed: isNowCompleted,
