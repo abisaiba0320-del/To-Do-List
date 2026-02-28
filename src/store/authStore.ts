@@ -39,11 +39,6 @@ export const useAuthStore = create<AuthState>()(
 
       resetProfile: async () => {
         set({ profile: { points: 0, level: 1 } });
-        try {
-          await updateProfile(0, 1);
-        } catch (error) {
-          console.error("Error al resetear perfil:", error);
-        }
       },
     }),
     { name: 'taskflow-auth-storage' }

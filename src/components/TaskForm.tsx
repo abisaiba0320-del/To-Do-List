@@ -58,34 +58,34 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
                 </button>
 
                 <h2 className="text-xl font-bold mb-6 text-gray-900 dark:text-white">
-                    {task ? 'Edit Task' : 'Create New Task'}
+                    {task ? 'Editar Tarea' : 'Crear Nueva Tarea'}
                 </h2>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input
-                        label="Task Title"
+                        label="Título de la Tarea"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        placeholder="What needs to be done?"
+                        placeholder="¿Qué hay que hacer?"
                         required
                         autoFocus
                     />
 
                     <div className="w-full">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Description
+                            Descripción
                         </label>
                         <textarea
                             className="flex w-full rounded-lg border border-gray-300/50 bg-white/50 px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-100 transition-colors resize-none h-24"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Add details..."
+                            placeholder="Añade detalles..."
                         />
                     </div>
 
                     <div className="w-full">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Category
+                            Categoría
                         </label>
                         <select
                             className="flex h-10 w-full rounded-lg border border-gray-300/50 bg-white/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-100 transition-colors"
@@ -100,11 +100,11 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
 
                     <div className="flex gap-3 justify-end mt-8">
                         <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>
-                            Cancel
+                            Cancelar
                         </Button>
                         <Button type="submit" disabled={loading} className="gap-2">
                             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                            {task ? 'Save Changes' : 'Create Task'}
+                            {task ? 'Guardar Cambios' : 'Crear Tarea'}
                         </Button>
                     </div>
                 </form>

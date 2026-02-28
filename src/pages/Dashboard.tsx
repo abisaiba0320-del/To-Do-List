@@ -70,7 +70,7 @@ export function Dashboard() {
         <div className="space-y-8 animate-in fade-in duration-500">
             <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
-                    Dashboard Overview
+                    Resumen del Dashboard
                 </h1>
                 <p className="text-gray-500 dark:text-gray-400 mt-1">Sigue tu progreso y mejora tu productividad.</p>
             </div>
@@ -78,19 +78,19 @@ export function Dashboard() {
             {/* Grid de Estadísticas */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard
-                    title="Total Tasks"
+                    title="Total de Tareas"
                     value={tasks.length.toString()}
                     icon={<Target className="w-5 h-5 text-blue-500" />}
                     trend="Carga histórica"
                 />
                 <StatCard
-                    title="Completed"
+                    title="Completadas"
                     value={completedTasks.toString()}
                     icon={<CheckCircle2 className="w-5 h-5 text-emerald-500" />}
                     trend={`${tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0}% de efectividad`}
                 />
                 <StatCard
-                    title="Pending"
+                    title="Pendientes"
                     value={pendingTasks.toString()}
                     icon={<Clock className="w-5 h-5 text-amber-500" />}
                     trend="Tareas por hacer"
@@ -108,7 +108,7 @@ export function Dashboard() {
                 <div className="glass p-6 min-h-[400px]">
                     <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
                         <Zap className="w-5 h-5 text-indigo-500" />
-                        Productivity Pulse
+                        Pulso de Productividad
                     </h2>
                     <div className="h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
@@ -136,7 +136,7 @@ export function Dashboard() {
                 <div className="glass p-6 min-h-[400px]">
                     <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
                         <Target className="w-5 h-5 text-pink-500" />
-                        Task Distribution
+                        Distribución de Tareas
                     </h2>
                     <div className="h-[300px] w-full">
                         {categoryData.length > 0 ? (

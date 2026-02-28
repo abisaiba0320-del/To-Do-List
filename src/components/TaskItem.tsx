@@ -84,7 +84,7 @@ export function TaskItem({ task, onEdit, onStartPomodoro, onRefresh }: TaskItemP
                         <div className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {/* Corregido: pomodoro_sessions para coincidir con la DB */}
-                            {task.pomodoro_sessions || 0} sessions
+                            {task.pomodoro_sessions || 0} sesiones
                         </div>
                     </div>
                 </div>
@@ -95,7 +95,7 @@ export function TaskItem({ task, onEdit, onStartPomodoro, onRefresh }: TaskItemP
                         size="sm"
                         onClick={onStartPomodoro}
                         className="h-8 w-8 p-0"
-                        title="Focus with Pomodoro"
+                        title="Enfocarse con Pomodoro"
                     >
                         <Play className="w-4 h-4 text-indigo-400" />
                     </Button>
@@ -104,14 +104,14 @@ export function TaskItem({ task, onEdit, onStartPomodoro, onRefresh }: TaskItemP
                         size="sm"
                         onClick={onEdit}
                         className="h-8 w-8 p-0 text-gray-400 hover:text-indigo-500"
-                        title="Edit Task"
+                        title="Editar Tarea"
                     >
                         <Edit2 className="w-4 h-4" />
                     </Button>
                     <button
                         onClick={handleDelete}
                         className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
-                        title="Delete Task"
+                        title="Eliminar Tarea"
                     >
                         <Trash2 className="w-4 h-4" />
                     </button>

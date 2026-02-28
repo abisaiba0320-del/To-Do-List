@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchTasks, updateTask } from '../services/api';
+import { fetchTasks, updateTask, getProfile } from '../services/api';
 import { type Task, type Category } from '../store/taskStore';
 import { Button } from '../components/ui/Button';
 import { TaskItem } from '../components/TaskItem';
@@ -7,6 +7,7 @@ import { TaskForm } from '../components/TaskForm';
 import { Plus, Filter, Loader2, X } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { PomodoroTimer } from '../components/PomodoroTimer';
+import { useAuthStore } from '../store/authStore';
 
 export function Tasks() {
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -14,8 +15,9 @@ export function Tasks() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<Task | null>(null);
     const [activePomodoroTask, setActivePomodoroTask] = useState<Task | null>(null);
-    const [filter, setFilter] = useState<'All' | 'Active' | 'Completed'>('All');
-    const [categoryFilter, setCategoryFilter] = useState<Category | 'All'>('All');
+    const [filter, setFilter] = useState<'Todas' | 'Activas' | 'Completadas'>('Todas');
+    const [categoryFilter, setCategoryFilter] = useState<Category | 'Todas'>('Todas');
+    const setProfile = useAuthStore((state) => state.setProfile);
 
     // Función para cargar tareas desde Supabase
     const loadTasks = async () => {
@@ -30,6 +32,19 @@ export function Tasks() {
     };
 
     useEffect(() => {
+        // Sync Profile Data from Supabase
+        const loadProfile = async () => {
+            try {
+                const profileData = await getProfile();
+                if (profileData) {
+                    setProfile({ points: profileData.points, level: profileData.level });
+                }
+            } catch (error) {
+                console.error("Error sincronizando perfil:", error);
+            }
+        };
+
+        loadProfile();
         loadTasks();
 
         // OPCIONAL: Escuchar cambios en tiempo real (Puntos extra en la rúbrica)
@@ -46,9 +61,9 @@ export function Tasks() {
     }, []);
 
     const filteredTasks = tasks.filter(task => {
-        if (filter === 'Active' && task.completed) return false;
-        if (filter === 'Completed' && !task.completed) return false;
-        if (categoryFilter !== 'All' && task.category !== categoryFilter) return false;
+        if (filter === 'Activas' && task.completed) return false;
+        if (filter === 'Completadas' && !task.completed) return false;
+        if (categoryFilter !== 'Todas' && task.category !== categoryFilter) return false;
         return true;
     });
 
@@ -73,7 +88,7 @@ export function Tasks() {
         }
     };
 
-    const categories: (Category | 'All')[] = ['All', 'Work', 'Personal', 'Study', 'Health', 'Other'];
+    const categories: (Category | 'Todas')[] = ['Todas', 'Work', 'Personal', 'Study', 'Health', 'Other'];
 
     if (loading) {
         return (
@@ -87,17 +102,17 @@ export function Tasks() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-                    My Tasks
+                    Mis Tareas
                 </h1>
                 <Button onClick={() => { setEditingTask(null); setIsFormOpen(true); }} className="gap-2">
                     <Plus className="w-4 h-4" />
-                    New Task
+                    Nueva Tarea
                 </Button>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 <div className="glass p-1 flex rounded-lg">
-                    {['All', 'Active', 'Completed'].map(f => (
+                    {['Todas', 'Activas', 'Completadas'].map(f => (
                         <button
                             key={f}
                             onClick={() => setFilter(f as any)}
@@ -133,7 +148,7 @@ export function Tasks() {
                     ))
                 ) : (
                     <div className="col-span-full py-12 text-center text-gray-500 glass rounded-xl">
-                        No tasks found. Create one to get started!
+                        No se encontraron tareas. ¡Crea una para comenzar!
                     </div>
                 )}
             </div>
@@ -160,7 +175,7 @@ export function Tasks() {
                             <X className="w-4 h-4" />
                         </button>
                         <div className="px-4 pt-3 pb-1 text-center">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Focusing On:</p>
+                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Enfocado en:</p>
                             <p className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[200px] mx-auto">
                                 {activePomodoroTask.title}
                             </p>

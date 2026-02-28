@@ -52,7 +52,7 @@ export function PomodoroTimer({ onComplete, onCancel }: PomodoroTimerProps) {
         <div className="bg-white/10 dark:bg-black/10 rounded-xl p-6 mt-2 border border-indigo-200/50 dark:border-indigo-900/50 flex flex-col items-center shadow-inner animate-in fade-in slide-in-from-top-2">
             <div className="flex items-center gap-2 mb-2">
                 <Trophy className="w-4 h-4 text-amber-500 animate-pulse" />
-                <span className="text-xs font-bold uppercase tracking-widest text-gray-500">Focus Session</span>
+                <span className="text-xs font-bold uppercase tracking-widest text-gray-500">Sesión de Enfoque</span>
             </div>
 
             <div className="text-4xl font-mono font-bold tracking-wider text-indigo-600 dark:text-indigo-400 mb-4 drop-shadow-md">
@@ -67,9 +67,9 @@ export function PomodoroTimer({ onComplete, onCancel }: PomodoroTimerProps) {
                     className="w-28 bg-white/50 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800 shadow-sm"
                 >
                     {isRunning ? (
-                        <><Pause className="w-4 h-4 mr-2" /> Pause</>
+                        <><Pause className="w-4 h-4 mr-2" /> Pausa</>
                     ) : (
-                        <><Play className="w-4 h-4 mr-2" /> Resume</>
+                        <><Play className="w-4 h-4 mr-2" /> Reanudar</>
                     )}
                 </Button>
                 <Button
@@ -77,7 +77,7 @@ export function PomodoroTimer({ onComplete, onCancel }: PomodoroTimerProps) {
                     size="sm"
                     onClick={resetTimer}
                     className="px-3 text-gray-400 hover:text-red-500 hover:bg-red-500/10"
-                    title="Cancel Session"
+                    title="Cancelar Sesión"
                 >
                     <Square className="w-4 h-4" />
                 </Button>
