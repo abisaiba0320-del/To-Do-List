@@ -13,13 +13,13 @@ export type Task = {
     completed_at?: string;
     pomodoro_sessions: number;
     user_id?: string;
-    xp_awarded?: boolean;
+    xp_awarded: boolean; // Quitamos el '?' para obligar a que exista
 };
 
 type TaskState = {
     tasks: Task[];
     setTasks: (tasks: Task[]) => void;
-    addTask: (taskData: Omit<Task, 'id' | 'created_at' | 'pomodoro_sessions' | 'completed'>) => void;
+    addTask: (taskData: Omit<Task, 'id' | 'created_at' | 'pomodoro_sessions' | 'completed' | 'xp_awarded'>) => void;
     updateTask: (id: string, updates: Partial<Task>) => void;
     deleteTask: (id: string) => void;
     toggleTaskCompletion: (id: string) => void;
@@ -38,6 +38,7 @@ export const useTaskStore = create<TaskState>((set) => ({
                 id: Date.now().toString(),
                 created_at: new Date().toISOString(),
                 completed: false,
+                xp_awarded: false, // Se inicializa en false siempre
                 pomodoro_sessions: 0,
             },
             ...state.tasks
@@ -59,15 +60,17 @@ export const useTaskStore = create<TaskState>((set) => ({
                 const auth = useAuthStore.getState();
 
                 // LÓGICA ANTI-TRAMPA DEFINITIVA
-                // Solo damos puntos si: se está completando AHORA Y nunca ha dado puntos antes
-                if (isNowCompleted && !task.xp_awarded) {
+                // Si la tarea NO ha dado XP y se está marcando como completada ahora:
+                const shouldAwardXP = isNowCompleted && !task.xp_awarded;
+
+                if (shouldAwardXP) {
                     auth.addPoints(10);
                 }
 
                 return {
                     ...task,
                     completed: isNowCompleted,
-                    // Marcamos que ya dio puntos para siempre, aunque la desmarque después
+                    // Si ya era true, se queda en true. Si es true ahora, pasa a true.
                     xp_awarded: task.xp_awarded || isNowCompleted,
                     completed_at: isNowCompleted ? new Date().toISOString() : undefined
                 };

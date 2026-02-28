@@ -15,15 +15,32 @@ export function TaskItem({ task, onEdit, onRefresh }: TaskItemProps) {
 
     const handleToggle = async () => {
         try {
-            const newStatus = !task.completed;
-            await updateTask(task.id, { completed: newStatus });
+            const isNowCompleted = !task.completed;
 
-            // Si la tarea se marcó como completada, premiamos al usuario
-            if (newStatus) {
+            // --- LÓGICA ANTI-TRAMPA ---
+            // Solo damos puntos si se marca como completada Y nunca ha dado puntos antes
+            const shouldAwardPoints = isNowCompleted && !task.xp_awarded;
+
+            // Preparamos los cambios para Supabase
+            const updates = {
+                completed: isNowCompleted,
+                // Si ya era true, se queda en true. Si ganamos puntos ahora, pasa a true.
+                xp_awarded: task.xp_awarded || isNowCompleted,
+                // Actualizamos la fecha para el Dashboard
+                completed_at: isNowCompleted ? new Date().toISOString() : null
+            };
+
+            // 1. Guardamos en la Base de Datos
+            await updateTask(task.id, updates);
+
+            // 2. Si corresponde, sumamos puntos en el Store de Zustand
+            if (shouldAwardPoints) {
                 addPoints(10);
             }
 
+            // 3. Refrescamos la lista para que el componente tenga los datos reales de la DB
             await onRefresh();
+
         } catch (error) {
             console.error("Error al actualizar la tarea:", error);
         }

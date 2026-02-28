@@ -10,27 +10,35 @@ export const fetchTasks = async () => {
     return data;
 };
 
-export const createTask = async (task: { title: string; description?: string; category?: string; completed?: boolean }) => {
-    // Obtenemos el ID del usuario que tiene la sesión iniciada
+// 1. Actualiza createTask para aceptar xp_awarded
+export const createTask = async (task: {
+    title: string;
+    description?: string;
+    category?: string;
+    completed?: boolean;
+    xp_awarded?: boolean; // <-- Añadido
+}) => {
     const { data: { user } } = await supabase.auth.getUser();
-
     if (!user) throw new Error("No hay sesión de usuario activa");
 
     const { data, error } = await supabase
         .from('tasks')
-        .insert([
-            {
-                ...task,
-                user_id: user.id // <--- Esto vincula la tarea al usuario real
-            }
-        ])
+        .insert([{ ...task, user_id: user.id }])
         .select();
 
     if (error) throw error;
     return data[0];
 };
 
-export const updateTask = async (id: string, updates: Partial<{ title: string; description: string; category: string; completed: boolean; pomodoro_sessions: number }>) => {
+// 2. Actualiza updateTask para permitir guardar xp_awarded
+export const updateTask = async (id: string, updates: Partial<{
+    title: string;
+    description: string;
+    category: string;
+    completed: boolean;
+    pomodoro_sessions: number;
+    xp_awarded: boolean; // <-- Añadido
+}>) => {
     const { data, error } = await supabase
         .from('tasks')
         .update(updates)
