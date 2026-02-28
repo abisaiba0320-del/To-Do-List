@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
-import { fetchTasks } from '../services/api';
+import { fetchTasks, updateTask } from '../services/api';
 import { type Task, type Category } from '../store/taskStore';
 import { Button } from '../components/ui/Button';
 import { TaskItem } from '../components/TaskItem';
 import { TaskForm } from '../components/TaskForm';
-import { Plus, Filter, Loader2 } from 'lucide-react';
+import { Plus, Filter, Loader2, X } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
+import { PomodoroTimer } from '../components/PomodoroTimer';
 
 export function Tasks() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<Task | null>(null);
+    const [activePomodoroTask, setActivePomodoroTask] = useState<Task | null>(null);
     const [filter, setFilter] = useState<'All' | 'Active' | 'Completed'>('All');
     const [categoryFilter, setCategoryFilter] = useState<Category | 'All'>('All');
 
@@ -53,6 +55,22 @@ export function Tasks() {
     const handleEdit = (task: Task) => {
         setEditingTask(task);
         setIsFormOpen(true);
+    };
+
+    const handlePomodoroComplete = async () => {
+        if (!activePomodoroTask) return;
+        try {
+            const currentSessions = activePomodoroTask.pomodoro_sessions || 0;
+            // The XP logic is inside PomodoroTimer, so we just increment the sessions here.
+            await updateTask(activePomodoroTask.id, {
+                pomodoro_sessions: currentSessions + 1
+            });
+            await loadTasks();
+        } catch (error) {
+            console.error("Error updating pomodoro sessions:", error);
+        } finally {
+            setActivePomodoroTask(null);
+        }
     };
 
     const categories: (Category | 'All')[] = ['All', 'Work', 'Personal', 'Study', 'Health', 'Other'];
@@ -109,6 +127,7 @@ export function Tasks() {
                             key={task.id}
                             task={task}
                             onEdit={() => handleEdit(task)}
+                            onStartPomodoro={() => setActivePomodoroTask(task)}
                             onRefresh={loadTasks} // Para que TaskItem avise si algo cambió
                         />
                     ))
@@ -128,6 +147,30 @@ export function Tasks() {
                         loadTasks(); // Recargar al cerrar el form
                     }}
                 />
+            )}
+
+            {/* Pomodoro Timer Floating Widget */}
+            {activePomodoroTask && (
+                <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-5 duration-300">
+                    <div className="glass p-1 rounded-2xl relative shadow-2xl border border-indigo-500/20">
+                        <button
+                            onClick={() => setActivePomodoroTask(null)}
+                            className="absolute -top-3 -right-3 p-1.5 bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-full shadow-md border border-gray-200 dark:border-gray-700 transition-colors z-10"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                        <div className="px-4 pt-3 pb-1 text-center">
+                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Focusing On:</p>
+                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[200px] mx-auto">
+                                {activePomodoroTask.title}
+                            </p>
+                        </div>
+                        <PomodoroTimer
+                            onComplete={handlePomodoroComplete}
+                            onCancel={() => setActivePomodoroTask(null)}
+                        />
+                    </div>
+                </div>
             )}
         </div>
     );

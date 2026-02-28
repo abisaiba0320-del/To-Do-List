@@ -1,4 +1,4 @@
-import { CheckCircle2, Circle, Clock, Trash2, Play } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, Trash2, Play, Edit2 } from 'lucide-react';
 import { type Task } from '../store/taskStore';
 import { deleteTask, updateTask } from '../services/api';
 import { Button } from './ui/Button';
@@ -7,10 +7,11 @@ import { useAuthStore } from '../store/authStore'; // Importamos el store de pun
 interface TaskItemProps {
     task: Task;
     onEdit: () => void;
+    onStartPomodoro?: () => void;
     onRefresh: () => Promise<void>;
 }
 
-export function TaskItem({ task, onEdit, onRefresh }: TaskItemProps) {
+export function TaskItem({ task, onEdit, onStartPomodoro, onRefresh }: TaskItemProps) {
     const addPoints = useAuthStore((state) => state.addPoints);
 
     const handleToggle = async () => {
@@ -92,11 +93,20 @@ export function TaskItem({ task, onEdit, onRefresh }: TaskItemProps) {
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={onEdit}
+                        onClick={onStartPomodoro}
                         className="h-8 w-8 p-0"
                         title="Focus with Pomodoro"
                     >
                         <Play className="w-4 h-4 text-indigo-400" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onEdit}
+                        className="h-8 w-8 p-0 text-gray-400 hover:text-indigo-500"
+                        title="Edit Task"
+                    >
+                        <Edit2 className="w-4 h-4" />
                     </Button>
                     <button
                         onClick={handleDelete}

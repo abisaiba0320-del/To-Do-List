@@ -36,12 +36,13 @@ export const fetchTasks = async () => {
     return data;
 };
 
-// 1. Actualiza createTask para aceptar xp_awarded
+// 1. Actualiza createTask para aceptar xp_awarded y pomodoro_sessions
 export const createTask = async (task: {
     title: string;
     description?: string;
     category?: string;
     completed?: boolean;
+    pomodoro_sessions?: number;
     xp_awarded?: boolean; // <-- Añadido
 }) => {
     const { data: { user } } = await supabase.auth.getUser();

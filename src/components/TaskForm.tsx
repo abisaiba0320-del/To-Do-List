@@ -34,6 +34,7 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
                     description,
                     category,
                     completed: false,
+                    pomodoro_sessions: 0,
                     xp_awarded: false // <-- AÑADE ESTA LÍNEA
                 });
             }
