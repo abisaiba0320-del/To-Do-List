@@ -1,5 +1,31 @@
 import { supabase } from './supabaseClient';
 
+export const getProfile = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+    if (error) throw error;
+    return data;
+};
+
+export const updateProfile = async (points: number, level: number) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase
+        .from('profiles')
+        .update({ points, level, updated_at: new Date().toISOString() })
+        .eq('id', user.id);
+
+    if (error) throw error;
+};
+
 export const fetchTasks = async () => {
     const { data, error } = await supabase
         .from('tasks')

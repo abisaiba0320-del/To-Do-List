@@ -25,13 +25,19 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
         setLoading(true);
         try {
             if (task) {
-                // Actualizar en Supabase
+                // Al editar, NO tocamos xp_awarded para no resetearlo
                 await updateTask(task.id, { title, description, category });
             } else {
-                // Crear en Supabase
-                await createTask({ title, description, category, completed: false });
+                // AL CREAR: Aseguramos que xp_awarded nazca en false
+                await createTask({
+                    title,
+                    description,
+                    category,
+                    completed: false,
+                    xp_awarded: false // <-- AÑADE ESTA LÍNEA
+                });
             }
-            onClose(); // Se cierra y el useEffect de Tasks.tsx recargará la lista
+            onClose();
         } catch (error) {
             alert("Error al guardar la tarea");
             console.error(error);

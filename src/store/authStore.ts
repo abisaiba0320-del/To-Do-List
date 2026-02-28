@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { updateProfile } from '../services/api'; // Importa la nueva función
 
 export type UserProfile = {
   points: number;
@@ -8,30 +9,43 @@ export type UserProfile = {
 
 type AuthState = {
   profile: UserProfile;
-  addPoints: (points: number) => void;
-  resetProfile: () => void;
+  setProfile: (profile: UserProfile) => void;
+  addPoints: (points: number) => Promise<void>;
+  resetProfile: () => Promise<void>;
 };
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       profile: { points: 0, level: 1 },
 
-      addPoints: (points) => set((state) => {
-        const newPoints = state.profile.points + points;
-        // Lógica: Cada 100 puntos subes de nivel
+      setProfile: (profile) => set({ profile }),
+
+      addPoints: async (pointsToAdd) => {
+        const currentProfile = get().profile;
+        const newPoints = currentProfile.points + pointsToAdd;
         const newLevel = Math.floor(newPoints / 100) + 1;
 
-        // Opcional: Podrías disparar una notificación de "Level Up" aquí
-        return {
-          profile: { points: newPoints, level: newLevel }
-        };
-      }),
+        // Actualizamos localmente
+        set({ profile: { points: newPoints, level: newLevel } });
 
-      resetProfile: () => set({ profile: { points: 0, level: 1 } }),
+        // Guardamos en Supabase
+        try {
+          await updateProfile(newPoints, newLevel);
+        } catch (error) {
+          console.error("Error sincronizando perfil:", error);
+        }
+      },
+
+      resetProfile: async () => {
+        set({ profile: { points: 0, level: 1 } });
+        try {
+          await updateProfile(0, 1);
+        } catch (error) {
+          console.error("Error al resetear perfil:", error);
+        }
+      },
     }),
-    {
-      name: 'taskflow-auth-storage', // Nombre un poco más específico para el localStorage
-    }
+    { name: 'taskflow-auth-storage' }
   )
 );
